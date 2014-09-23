@@ -1,8 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe 'script' do
-  path_to_script = File.join(File.dirname(__FILE__),'..','bin','rnaseq_transcription_directionality')
-  puts __FILE__
+  path_to_script = File.join(File.dirname(__FILE__),'..','bin','dirseq')
   data_dir = File.absolute_path(File.join(File.dirname(__FILE__),'data'))
 
   it "should regular mode" do

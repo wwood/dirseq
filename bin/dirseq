@@ -19,7 +19,7 @@ o = OptionParser.new do |opts|
   opts.banner = "
     Usage: #{SCRIPT_NAME} <arguments>
 
-    Description of what this program does...\n\n"
+    Reports the coverage of a mapping in against each gene given in a GFF file\n\n"
 
   opts.on("--bam FILE", "path to mapping file [required]") do |arg|
     options[:bam] = arg
