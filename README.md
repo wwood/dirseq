@@ -2,9 +2,7 @@
 
 [![Build Status](https://secure.travis-ci.org/wwood/dirseq.png)](http://travis-ci.org/wwood/dirseq)
 
-A simple script to work out whether RNAseq reads in general agree with the direction of the gene predicted.
-
-Also can give gene-wise coverages using DNAseq mappings.
+DirSeq work out whether RNAseq reads from metatranscriptomes are generally in the same direction as the ORF predicted, and provide gene-wise coverages using DNAseq mappings.
 
 Note: this software is under active development!
 
