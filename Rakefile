@@ -14,8 +14,8 @@ require 'rake'
 require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://guides.rubygems.org/specification-reference/ for more options
-  gem.name = "bio-rnaseq_transcription_directionality"
-  gem.homepage = "http://github.com/wwood/bioruby-rnaseq_transcription_directionality"
+  gem.name = "dirseq"
+  gem.homepage = "http://github.com/wwood/dirseq"
   gem.license = "MIT"
   gem.summary = %Q{FPKG calculator for metatranscriptomics}
   gem.description = %Q{FPKG (gene expression metric) calculator for metatranscriptomics}
