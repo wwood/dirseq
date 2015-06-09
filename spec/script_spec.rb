@@ -27,4 +27,16 @@ describe 'script' do
 
     found.should == answer
   end
+
+  it 'should not fail when the GFF has a FASTA section' do
+    answer = %w(
+    contig	type	start	end	strand	forward_average_coverage	reverse_average_coverage	annotation
+    ).join("\t")+"\n"+%w(
+    contig_100	CDS	2	127	+	0.0	1.1428571428571428	unannotated
+    ).join("\t")+"\n"
+
+    found = Bio::Commandeer.run "#{path_to_script} --bam #{data_dir}/eg.bam --gff #{data_dir}/eg_with_fasta.gff -q"
+
+    found.should == answer
+  end
 end

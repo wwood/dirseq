@@ -6,6 +6,7 @@ require 'bio'
 require 'bio-commandeer'
 #require 'pry'
 require 'set'
+require 'tempfile'
 
 SCRIPT_NAME = File.basename(__FILE__); LOG_NAME = SCRIPT_NAME.gsub('.rb','')
 
@@ -50,7 +51,7 @@ bam_file = options[:bam]
 
 
 calculate_cov = lambda do |covs, num_covs|
-  covs.reduce(:+).to_f/num_covs
+  covs.reduce(:+).to_f / num_covs
 end
 
 get_covs = lambda do |cov_lines|
@@ -90,6 +91,12 @@ get_covs = lambda do |cov_lines|
 
   feature_to_covs
 end
+
+# Remove the ##FASTA and afterwards from the GFF file as this makes bedtools <2.25 fail
+# https://github.com/arq5x/bedtools2/issues/235#issuecomment-103776618
+no_fasta_gff = Tempfile.new('dirseq')
+Bio::Commandeer.run "sed '/^##FASTA$/,$d' #{gff_file.inspect} > #{no_fasta_gff.path}"
+gff_file = no_fasta_gff.path
 
 covs_fwd = nil
 if options[:ignore_directions]
