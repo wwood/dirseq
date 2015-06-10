@@ -99,7 +99,7 @@ gff_file = no_fasta_gff.path
 
 covs_fwd = nil
 if options[:ignore_directions]
-  cmd1 = "bedtools coverage -abam #{bam_file.inspect} -b #{gff_file.inspect} -hist"
+  cmd1 = "bedtools coverage -b #{bam_file.inspect} -a #{gff_file.inspect} -hist"
   cov_lines_fwd = Bio::Commandeer.run cmd1, :log => log
   log.info "Parsing coverage profiles"
   covs_fwd = get_covs.call(cov_lines_fwd)
@@ -108,10 +108,10 @@ else
   # fwd read 1
   read1_flag = '-F128' #account for read1 in pair, as well as single reads mapping
   read2_flag = '-f128'
-  cmdf1 = "samtools view -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -abam /dev/stdin -b #{gff_file.inspect} -hist -s"
-  cmdf2 = "samtools view -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -abam /dev/stdin -b #{gff_file.inspect} -hist -s"
-  cmdr1 = "samtools view -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -abam /dev/stdin -b #{gff_file.inspect} -hist -S"
-  cmdr2 = "samtools view -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -abam /dev/stdin -b #{gff_file.inspect} -hist -S"
+  cmdf1 = "samtools view -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -hist -s"
+  cmdf2 = "samtools view -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -hist -s"
+  cmdr1 = "samtools view -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -hist -S"
+  cmdr2 = "samtools view -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -hist -S"
 
   command_to_parsed = lambda do |cmds, name|
     covs_lines_initial = cmds.collect do |cmd|
