@@ -4,7 +4,6 @@ require 'optparse'
 require 'bio-logger'
 require 'bio'
 require 'bio-commandeer'
-#require 'pry'
 require 'set'
 require 'tempfile'
 
@@ -95,7 +94,7 @@ end
 # Remove the ##FASTA and afterwards from the GFF file as this makes bedtools <2.25 fail
 # https://github.com/arq5x/bedtools2/issues/235#issuecomment-103776618
 no_fasta_gff = Tempfile.new('dirseq')
-Bio::Commandeer.run "sed '/^##FASTA$/,$d' #{gff_file.inspect} > #{no_fasta_gff.path}"
+Bio::Commandeer.run "sed '/^##FASTA$/,$d' #{gff_file.inspect} > #{no_fasta_gff.path}", :log => log
 gff_file = no_fasta_gff.path
 
 covs_fwd = nil
@@ -122,7 +121,6 @@ else
       log.info "Parsing #{name}"
       get_covs.call(lines)
     end
-    #binding.pry
     covs = covs_initial[0]
     covs_initial[1].each do |cov_key, cov|
       covs[cov_key] += cov
