@@ -13,8 +13,8 @@ Won't work just yet:
 gem install dirseq
 ```
 Requires:
-* samtools (tested with 0.1.19)
-* bedtools (tested with 2.20.1)
+* samtools (tested with 0.1.19 and 1.0+)
+* bedtools (tested with 2.24.0) - old versions won't work.
 * Ruby (tested with 2.1.1)
 
 ## Usage
