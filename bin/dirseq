@@ -9,11 +9,19 @@ require 'tempfile'
 
 SCRIPT_NAME = File.basename(__FILE__); LOG_NAME = SCRIPT_NAME.gsub('.rb','')
 
+COVERAGE_COUNT_TYPE = 'coverage'
+COUNT_COUNT_TYPE = 'count'
+COUNT_TYPES = [
+  COUNT_COUNT_TYPE,
+  COVERAGE_COUNT_TYPE
+]
+
 # Parse command line options into the options hash
 options = {
   :ignore_directions => false,
   :logger => 'stderr',
   :log_level => 'info',
+  :count_type => COVERAGE_COUNT_TYPE,
 }
 o = OptionParser.new do |opts|
   opts.banner = "
@@ -31,6 +39,10 @@ o = OptionParser.new do |opts|
   opts.on("--ignore-directions", "ignore directionality, give overall coverage [default: false i.e. differentiate between directions]") do |arg|
     options[:ignore_directions] = true
   end
+  opts.on("--measure-type TYPE", "what to count for each gene [options: #{COUNT_TYPES.join(', ')}][default: #{options[:count_type]}]") do |arg|
+    raise "Unexpected count type detected" if not COUNT_TYPES.include?(arg)
+    options[:count_type] = arg
+  end
 
   # logger options
   opts.separator "\nVerbosity:\n\n"
@@ -47,6 +59,11 @@ Bio::Log::CLI.logger(options[:logger]); Bio::Log::CLI.trace(options[:log_level])
 
 gff_file = options[:gff]
 bam_file = options[:bam]
+count_type = options[:count_type]
+
+if options[:count_type] != COVERAGE_COUNT_TYPE and options[:ignore_directions]
+  raise "ignore_directions + count_type != coverage is currently unsupported"
+end
 
 
 calculate_cov = lambda do |covs, num_covs|
@@ -81,9 +98,16 @@ get_covs = lambda do |cov_lines|
       covs = []
       num_covs = 0
     end
-    num = splits[10].to_i
-    covs.push num*splits[9].to_i
-    num_covs += num
+    if splits.length == 13 # -hist
+      num = splits[10].to_i
+      covs.push num*splits[9].to_i
+      num_covs += num
+    elsif splits.length == 10 # -count
+      covs.push splits[9].to_i
+      num_covs += 1
+    else
+      raise "Unexpected bedtools output line: #{line}"
+    end
     previous_feature = feat
   end
   feature_to_covs[previous_feature] = calculate_cov.call(covs, num_covs)
@@ -108,10 +132,14 @@ else
   # fwd read 1
   read1_flag = '-F128' #account for read1 in pair, as well as single reads mapping
   read2_flag = '-f128'
-  cmdf1 = "samtools view -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -hist -s"
-  cmdf2 = "samtools view -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -hist -s"
-  cmdr1 = "samtools view -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -hist -S"
-  cmdr2 = "samtools view -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -hist -S"
+  bedtools_type_flag = '-hist'
+  if options[:count_type] == COUNT_COUNT_TYPE
+    bedtools_type_flag = '-counts'
+  end
+  cmdf1 = "samtools view -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -s #{bedtools_type_flag}"
+  cmdf2 = "samtools view -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -s #{bedtools_type_flag}"
+  cmdr1 = "samtools view -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -S #{bedtools_type_flag}"
+  cmdr2 = "samtools view -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -S #{bedtools_type_flag}"
 
   command_to_parsed = lambda do |cmds, name|
     covs_lines_initial = cmds.collect do |cmd|
@@ -142,9 +170,14 @@ headers = [
 ]
 if options[:ignore_directions]
   headers.push 'average_coverage'
-else
+elsif options[:count_type] == COVERAGE_COUNT_TYPE
   headers.push 'forward_average_coverage'
   headers.push 'reverse_average_coverage'
+elsif options[:count_type] == COUNT_COUNT_TYPE
+  headers.push 'forward_read_count'
+  headers.push 'reverse_read_count'
+else
+  raise
 end
 headers.push 'annotation'
 puts headers.join("\t")

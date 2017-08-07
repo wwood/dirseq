@@ -51,4 +51,16 @@ describe 'script' do
 
     found.should == answer
   end
+
+  it 'should print counts correctly' do
+    answer = %w(
+    contig	type	start	end	strand	forward_read_count	reverse_read_count	annotation
+    ).join("\t")+"\n"+%w(
+    contig_100	CDS	2	127	+	0.0	2.0	putative
+    ).join("\t")+" methyltransferase YcgJ\n"
+
+    found = Bio::Commandeer.run "#{path_to_script} --bam #{data_dir}/eg.bam --gff #{data_dir}/realer.gff -q --measure-type count"
+
+    found.should == answer
+  end
 end
