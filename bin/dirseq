@@ -116,9 +116,53 @@ end
 
 # Remove the ##FASTA and afterwards from the GFF file as this makes bedtools <2.25 fail
 # https://github.com/arq5x/bedtools2/issues/235#issuecomment-103776618
-no_fasta_gff = Tempfile.new('dirseq')
+no_fasta_gff = Tempfile.new(['dirseq','.gff3'])
 Bio::Commandeer.run "sed '/^##FASTA$/,$d' #{gff_file.inspect} > #{no_fasta_gff.path}", :log => log
 gff_file = no_fasta_gff.path
+
+
+
+
+
+# Find featureless contigs. Need to so that bedtools coverage -sorted does not complain
+if not File.exists?("#{bam_file}.bai")
+  raise "Input bam file must be indexed, but the index file does not exist"
+end
+
+chromosome_file = Tempfile.new('bam_contigs')
+log.info "Listing contigs in sorted order .."
+cmd = "samtools idxstats #{bam_file.inspect} |cut -f1,2 >#{chromosome_file.path.inspect}"
+Bio::Commandeer.run(cmd, :log => log)
+
+log.info "Finding featureless contigs"
+cmd = "grep -v '^#' #{gff_file.inspect} |cut -f1 |sort |uniq |grep -vFw -f /dev/stdin #{chromosome_file.path.inspect} |cut -f1"
+featureless_contigs = Bio::Commandeer.run(cmd, :log => log).lines.map(&:chomp).reject{ |ref| ref=='*' }
+log.info "Found #{featureless_contigs.length} featureless contigs"
+
+# Sort the GFF
+dummy_features = featureless_contigs.collect do |ref|
+  [ref,
+   'dirseq',
+   'misc_RNA',
+   '1',
+   '2',
+   '.',
+   '+',
+   '0',
+   "ID=#{ref}_dummy_feature"].join("\t")
+end
+sorted_gff_file_f = Tempfile.new(['sorted_gff','.gff3'])
+sorted_gff_file = sorted_gff_file_f.path
+Tempfile.open(["extra_features",'.gff']) do |ef|
+  ef.puts dummy_features.join("\n")
+  ef.close
+
+  cmd = "cat #{ef.path} #{gff_file.inspect} |bedtools sort -i /dev/stdin -faidx #{chromosome_file.path.inspect} >#{sorted_gff_file.inspect}"
+  log.info "Running bedtools sort"
+  Bio::Commandeer.run(cmd, :log => log)
+end
+
+
 
 covs_fwd = nil
 if options[:ignore_directions]
@@ -135,10 +179,10 @@ else
   if options[:count_type] == COUNT_COUNT_TYPE
     bedtools_type_flag = '-counts'
   end
-  cmdf1 = "samtools view -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -s #{bedtools_type_flag}"
-  cmdf2 = "samtools view -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -s #{bedtools_type_flag}"
-  cmdr1 = "samtools view -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -S #{bedtools_type_flag}"
-  cmdr2 = "samtools view -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -S #{bedtools_type_flag}"
+  cmdf1 = "samtools view -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -sorted -g #{chromosome_file.path.inspect} -b /dev/stdin -a #{sorted_gff_file.inspect} -s #{bedtools_type_flag}"
+  cmdf2 = "samtools view -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -sorted -g #{chromosome_file.path.inspect} -b /dev/stdin -a #{sorted_gff_file.inspect} -s #{bedtools_type_flag}"
+  cmdr1 = "samtools view -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -sorted -g #{chromosome_file.path.inspect} -b /dev/stdin -a #{sorted_gff_file.inspect} -S #{bedtools_type_flag}"
+  cmdr2 = "samtools view -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -sorted -g #{chromosome_file.path.inspect} -b /dev/stdin -a #{sorted_gff_file.inspect} -S #{bedtools_type_flag}"
 
   command_to_parsed = lambda do |cmds, name|
     covs_lines_initial = cmds.collect do |cmd|
