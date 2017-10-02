@@ -22,6 +22,7 @@ options = {
   :logger => 'stderr',
   :log_level => 'info',
   :count_type => COVERAGE_COUNT_TYPE,
+  :forward_read_only => false,
 }
 o = OptionParser.new do |opts|
   opts.banner = "
@@ -36,6 +37,9 @@ o = OptionParser.new do |opts|
     options[:gff] = arg
   end
   opts.separator "\nOptional parameters:\n\n"
+  opts.on("--forward-read-only", "consider only forward reads (i.e. read1) and ignore reverse reads. [default #{options[:forward_read_only]}]") do
+    options[:forward_ready_only] = true
+  end
   opts.on("--ignore-directions", "ignore directionality, give overall coverage [default: false i.e. differentiate between directions]") do |arg|
     options[:ignore_directions] = true
   end
@@ -193,15 +197,23 @@ else
       get_covs.call(lines)
     end
     covs = covs_initial[0]
-    covs_initial[1].each do |cov_key, cov|
-      covs[cov_key] += cov
+    if covs_initial.length > 1
+      covs_initial[1].each do |cov_key, cov|
+        covs[cov_key] += cov
+      end
     end
     covs #'return' from lambda
   end
 
   # Agreeing reads (those whose template are fwd along the reference sequence) are either first and fwd, or second and rev
-  covs_fwd = command_to_parsed.call([cmdf1,cmdr2], 'reads with same direction as their reference')
-  covs_rev = command_to_parsed.call([cmdf2,cmdr1], 'reads with opposing direction as their reference')
+  commands_fwd = [cmdf1,cmdr2]
+  commands_rev = [cmdf2,cmdr1]
+  if options[:forward_ready_only]
+    commands_fwd = [cmdf1]
+    commands_rev = [cmdr1]
+  end
+  covs_fwd = command_to_parsed.call(commands_fwd, 'reads with same direction as their reference')
+  covs_rev = command_to_parsed.call(commands_rev, 'reads with opposing direction as their reference')
 end
 
 headers = [
