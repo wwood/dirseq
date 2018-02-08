@@ -68,6 +68,7 @@ Bio::Log::CLI.logger(options[:logger]); Bio::Log::CLI.trace(options[:log_level])
 
 gff_file = options[:gff]
 bam_file = options[:bam]
+accepted_feature_types = options[:accepted_feature_types]
 
 if options[:count_type] != COVERAGE_COUNT_TYPE and options[:ignore_directions]
   raise "ignore_directions + count_type != coverage is currently unsupported"
@@ -78,7 +79,7 @@ calculate_cov = lambda do |covs, num_covs|
   covs.reduce(:+).to_f / num_covs
 end
 
-get_covs = lambda do |cov_lines, accepted_feature_types|
+get_covs = lambda do |cov_lines|
   feature_to_covs = {}
   previous_feature = nil
   covs = []
