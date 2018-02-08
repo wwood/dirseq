@@ -23,6 +23,7 @@ options = {
   :log_level => 'info',
   :count_type => COVERAGE_COUNT_TYPE,
   :forward_read_only => false,
+  :accepted_feature_types => ['CDS'],
 }
 o = OptionParser.new do |opts|
   opts.banner = "
@@ -46,6 +47,10 @@ o = OptionParser.new do |opts|
   opts.on("--measure-type TYPE", "what to count for each gene [options: #{COUNT_TYPES.join(', ')}][default: #{options[:count_type]}]") do |arg|
     raise "Unexpected count type detected" if not COUNT_TYPES.include?(arg)
     options[:count_type] = arg
+  end
+  opts.on("--accepted-feature-types TYPE", Array,
+          "Print only features of these type(s) [default #{options[:accepted_feature_types].join(',')}]") do |arg|
+    options[:accepted_feature_types] = set(arg)
   end
 
   # logger options
@@ -73,7 +78,7 @@ calculate_cov = lambda do |covs, num_covs|
   covs.reduce(:+).to_f / num_covs
 end
 
-get_covs = lambda do |cov_lines|
+get_covs = lambda do |cov_lines, accepted_feature_types|
   feature_to_covs = {}
   previous_feature = nil
   covs = []
@@ -96,6 +101,11 @@ get_covs = lambda do |cov_lines|
     #96 #coverage
     #0.0208333
     feat = splits[0..8]
+    feature_type = feat[2]
+    if not accepted_feature_types.include?(feature_type)
+      log.debug "Skipping feature as it is of type #{feature_type}"
+      next
+    end
     if feat != previous_feature
       feature_to_covs[previous_feature] = calculate_cov.call(covs, num_covs) unless previous_feature.nil?
       covs = []
