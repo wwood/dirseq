@@ -32,7 +32,11 @@ $ dirseq -h
 
 Optional parameters:
 
+        --forward-read-only          consider only forward reads (i.e. read1) and ignore reverse reads. [default false]
         --ignore-directions          ignore directionality, give overall coverage [default: false i.e. differentiate between directions]
+        --measure-type TYPE          what to count for each gene [options: count, coverage][default: coverage]
+        --accepted-feature-types TYPE
+                                     Print only features of these type(s) [default CDS]
 
 Verbosity:
 
