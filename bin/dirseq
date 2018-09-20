@@ -50,7 +50,7 @@ o = OptionParser.new do |opts|
   end
   opts.on("--accepted-feature-types TYPE", Array,
           "Print only features of these type(s) [default #{options[:accepted_feature_types].join(',')}]") do |arg|
-    options[:accepted_feature_types] = set(arg)
+    options[:accepted_feature_types] = Set.new(arg)
   end
 
   # logger options
