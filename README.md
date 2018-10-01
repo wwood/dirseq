@@ -37,7 +37,8 @@ Optional parameters:
         --measure-type TYPE          what to count for each gene [options: count, coverage][default: coverage]
         --accepted-feature-types TYPE
                                      Print only features of these type(s) [default CDS]
-
+        --comment-fields             Print elements from the comments in the GFF file [default ID]
+        
 Verbosity:
 
     -q, --quiet                      Run quietly, set logging to ERROR level [default INFO]
