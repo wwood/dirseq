@@ -193,8 +193,8 @@ if options[:ignore_directions]
 
 else
   # fwd read 1
-  read1_flag = '-F128' #account for read1 in pair, as well as single reads mapping
-  read2_flag = '-f128'
+  read1_flag = '-F0x100 -F0x800 -F128' #account for read1 in pair, as well as single reads mapping
+  read2_flag = '-F0x100 -F0x800 -f128'
   bedtools_type_flag = '-hist'
   if options[:count_type] == COUNT_COUNT_TYPE
     bedtools_type_flag = '-counts'
