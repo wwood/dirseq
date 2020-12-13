@@ -24,7 +24,11 @@ options = {
   :count_type => COVERAGE_COUNT_TYPE,
   :forward_read_only => false,
   :accepted_feature_types => ['CDS'],
+<<<<<<< HEAD
   :comment_fields_to_print => ['ID'],
+=======
+  :sam_filter_flags => "-F0x100 -F0x800",
+>>>>>>> d6f450a... dirseq: Filter out non-primary and supplementary aligns.
 }
 o = OptionParser.new do |opts|
   opts.banner = "
@@ -56,6 +60,9 @@ o = OptionParser.new do |opts|
   opts.on("--comment-fields", Array,
           "Print elements from the comments in the GFF file [default #{options[:comment_fields_to_print].join(',')}]") do |arg|
     options[:comment_fields_to_print] = arg
+  end
+  opts.on("--sam-filter-flags", "Apply these samtools filters [default: #{options[:sam_filter_flags]}]") do |arg|
+    options[:sam_filter_flags] = arg
   end
 
   # logger options
@@ -186,7 +193,7 @@ end
 
 covs_fwd = nil
 if options[:ignore_directions]
-  cmd1 = "bedtools coverage -b #{bam_file.inspect} -a #{gff_file.inspect} -hist"
+  cmd1 = "samtools view -u #{options[:sam_filter_flags]} #{bam_file.inspect} |bedtools coverage -b /dev/stdin -a #{gff_file.inspect} -hist"
   cov_lines_fwd = Bio::Commandeer.run cmd1, :log => log
   log.info "Parsing coverage profiles"
   covs_fwd = get_covs.call(cov_lines_fwd)
@@ -199,10 +206,10 @@ else
   if options[:count_type] == COUNT_COUNT_TYPE
     bedtools_type_flag = '-counts'
   end
-  cmdf1 = "samtools view -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -sorted -g #{chromosome_file.path.inspect} -b /dev/stdin -a #{sorted_gff_file.inspect} -s #{bedtools_type_flag}"
-  cmdf2 = "samtools view -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -sorted -g #{chromosome_file.path.inspect} -b /dev/stdin -a #{sorted_gff_file.inspect} -s #{bedtools_type_flag}"
-  cmdr1 = "samtools view -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -sorted -g #{chromosome_file.path.inspect} -b /dev/stdin -a #{sorted_gff_file.inspect} -S #{bedtools_type_flag}"
-  cmdr2 = "samtools view -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -sorted -g #{chromosome_file.path.inspect} -b /dev/stdin -a #{sorted_gff_file.inspect} -S #{bedtools_type_flag}"
+  cmdf1 = "samtools view #{options[:sam_filter_flags]} -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -sorted -g #{chromosome_file.path.inspect} -b /dev/stdin -a #{sorted_gff_file.inspect} -s #{bedtools_type_flag}"
+  cmdf2 = "samtools view #{options[:sam_filter_flags]} -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -sorted -g #{chromosome_file.path.inspect} -b /dev/stdin -a #{sorted_gff_file.inspect} -s #{bedtools_type_flag}"
+  cmdr1 = "samtools view #{options[:sam_filter_flags]} -u #{read1_flag} #{bam_file.inspect} |bedtools coverage -sorted -g #{chromosome_file.path.inspect} -b /dev/stdin -a #{sorted_gff_file.inspect} -S #{bedtools_type_flag}"
+  cmdr2 = "samtools view #{options[:sam_filter_flags]} -u #{read2_flag} #{bam_file.inspect} |bedtools coverage -sorted -g #{chromosome_file.path.inspect} -b /dev/stdin -a #{sorted_gff_file.inspect} -S #{bedtools_type_flag}"
 
   command_to_parsed = lambda do |cmds, name|
     covs_lines_initial = cmds.collect do |cmd|
