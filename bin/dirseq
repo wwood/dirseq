@@ -151,7 +151,7 @@ end
 
 chromosome_file = Tempfile.new('bam_contigs')
 log.info "Listing contigs in sorted order .."
-cmd = "samtools idxstats #{bam_file.inspect} |cut -f1,2 >#{chromosome_file.path.inspect}"
+cmd = "samtools idxstats #{bam_file.inspect} |cut -f1,2 |grep -v '^*' >#{chromosome_file.path.inspect}"
 Bio::Commandeer.run(cmd, :log => log)
 
 log.info "Finding featureless contigs"

@@ -11,8 +11,8 @@ gem "bio", "~>1.4", ">=1.4.2"
 group :development do
   #gem "shoulda", "~> 3.5"
   #gem "simplecov", "~> 0.8"
-  gem "jeweler", "~> 2.0"
-  gem "bundler", "~> 1.6"
+  gem "jeweler", "~> 2.3"
+  gem "bundler", "~> 2.1"
   gem "rspec", "~> 3.0"
   gem 'pry', '~>0.10'
 end
