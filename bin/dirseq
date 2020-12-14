@@ -24,11 +24,8 @@ options = {
   :count_type => COVERAGE_COUNT_TYPE,
   :forward_read_only => false,
   :accepted_feature_types => ['CDS'],
-<<<<<<< HEAD
   :comment_fields_to_print => ['ID'],
-=======
   :sam_filter_flags => "-F0x100 -F0x800",
->>>>>>> d6f450a... dirseq: Filter out non-primary and supplementary aligns.
 }
 o = OptionParser.new do |opts|
   opts.banner = "
