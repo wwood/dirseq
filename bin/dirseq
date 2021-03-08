@@ -54,7 +54,7 @@ o = OptionParser.new do |opts|
           "Print only features of these type(s) [default #{options[:accepted_feature_types].join(',')}]") do |arg|
     options[:accepted_feature_types] = Set.new(arg)
   end
-  opts.on("--comment-fields", Array,
+  opts.on("--comment-fields COMMA_SEPARATED_FIELDS", Array,
           "Print elements from the comments in the GFF file [default #{options[:comment_fields_to_print].join(',')}]") do |arg|
     options[:comment_fields_to_print] = arg
   end
