@@ -63,6 +63,11 @@ Verbosity:
         --trace options              Set log level [default INFO]. e.g. '--trace debug' to set logging level to DEBUG
 ```
 
+Running on [EnrichM](https://github.com/geronimp/enrichM) output, the output columns are changed relative to [PROKKA](https://github.com/tseemann/prokka)-generated GFF files:
+```sh
+dirseq --bam spec/data/eg.bam --gff spec/data/eg.gff --measure-type count --comment-fields seq_id,annotations
+```
+
 ## Project home page
 
 Information on the source tree, documentation, examples, issues and
